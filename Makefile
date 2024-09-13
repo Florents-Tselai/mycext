@@ -26,20 +26,18 @@ clean:
 	rm -f $(OBJS) $(TARGET)
 	rm test.duckdb
 
-# Detect the operating system
 UNAME_S := $(shell uname -s)
-
-# Default library path
-LIB_PATH = LD_LIBRARY_PATH
-
-# Use DYLD_LIBRARY_PATH if macOS is detected
-ifeq ($(UNAME_S), Darwin)
+LIB_PATH = UNKNOWN_LIBRARY_PATH
+ifeq ($(UNAME_S), Linux)
+	LIB_PATH = LD_LIBRARY_PATH
+else ifeq ($(UNAME_S), Darwin)
 	LIB_PATH = DYLD_LIBRARY_PATH
 endif
 
 test:
-	@export $(LIB_PATH)=$(PREFIX)/lib; \
+	export $(LIB_PATH)=$(DUCKDB_BIN)/lib; \
 	$(DUCKDB_BIN) -unsigned -c ".read test_$(EXTNAME).sql" --echo ./test.duckdb
+
 
 
 .PHONY: all clean install test
