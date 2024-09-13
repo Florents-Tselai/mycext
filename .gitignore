@@ -1,0 +1,6 @@
+.duckdb/
+local/
+*.duckdb
+*.duckdb_extension
+.idea
+*.[o,so]
