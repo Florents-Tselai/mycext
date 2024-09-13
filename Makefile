@@ -22,9 +22,6 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(INCLUDES) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $(TARGET) $(OBJS)
 
-clean:
-	rm -f $(OBJS) $(TARGET)
-	rm test.duckdb
 
 UNAME_S := $(shell uname -s)
 LIB_PATH = UNKNOWN_LIBRARY_PATH
@@ -35,14 +32,8 @@ else ifeq ($(UNAME_S), Darwin)
 endif
 
 test:
-	export $(LIB_PATH)=$(DUCKDB_BIN)/lib; \
+	@export $(LIB_PATH)=$(PREFIX)/lib; \
 	$(DUCKDB_BIN) -unsigned -c ".read test_$(EXTNAME).sql" --echo ./test.duckdb
-
-
-
-.PHONY: all clean install test
-
-dev: clean all test
 
 install-duckdb:
 	mkdir /tmp/duckdb && \
@@ -55,4 +46,8 @@ install-duckdb:
 	make install && \
 	rm -rf /tmp/duckdb
 
-.PHONY: install-duckdb
+clean:
+	rm -f $(OBJS) $(TARGET)
+	rm test.duckdb
+
+.PHONY: all clean install test install-duckdb
