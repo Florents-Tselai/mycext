@@ -3,7 +3,7 @@ PREFIX ?= $(shell pwd)/local
 DUCKDB_BIN = $(PREFIX)/bin/duckdb
 
 CC = gcc
-CFLAGS = -Wall -Wextra -shared -Wunused-parameter
+CFLAGS = -Wall -Wextra -shared -Wunused-parameter -fPIC
 INCLUDES = -I$(PREFIX)/include
 LDFLAGS = -L$(PREFIX)/lib
 LIBS =  -lduckdb
@@ -26,22 +26,35 @@ clean:
 	rm -f $(OBJS) $(TARGET)
 	rm test.duckdb
 
+# Detect the operating system
+UNAME_S := $(shell uname -s)
+
+# Default library path
+LIB_PATH = LD_LIBRARY_PATH
+
+# Use DYLD_LIBRARY_PATH if macOS is detected
+ifeq ($(UNAME_S), Darwin)
+	LIB_PATH = DYLD_LIBRARY_PATH
+endif
+
 test:
-	export DYLD_LIBRARY_PATH=$(DUCKDB_BIN)/lib; \
+	@export $(LIB_PATH)=$(PREFIX)/lib; \
 	$(DUCKDB_BIN) -unsigned -c ".read test_$(EXTNAME).sql" --echo ./test.duckdb
+
 
 .PHONY: all clean install test
 
 dev: clean all test
 
-
 install-duckdb:
-	cd /tmp && \
+	mkdir /tmp/duckdb && \
+	cd /tmp/duckdb && \
 	wget "https://github.com/duckdb/duckdb/archive/refs/tags/v$(DUCKDB_VERSION).tar.gz" && \
 	tar xzf v$(DUCKDB_VERSION).tar.gz && \
 	cd duckdb-$(DUCKDB_VERSION) && \
 	cmake --install-prefix=$(PREFIX) . && \
 	make -j4 all && \
-	make install
+	make install && \
+	rm -rf /tmp/duckdb
 
 .PHONY: install-duckdb
